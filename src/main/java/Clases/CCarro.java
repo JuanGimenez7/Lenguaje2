@@ -1,12 +1,15 @@
 package Clases;
 
+import java.awt.Image;
 import java.io.File;
 import java.io.FileInputStream;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -171,7 +174,7 @@ public class CCarro {
         }
     }
     
-    public void mostrarUsuarios(JTable tablaTotalCarros){
+    public void mostrarCarros(JTable tablaTotalCarros){
         CConexion objetoConexion = new CConexion();
         
         DefaultTableModel modelo = new DefaultTableModel();
@@ -185,7 +188,134 @@ public class CCarro {
         modelo.addColumn("Año");
         modelo.addColumn("Color");
         modelo.addColumn("$ Venta");
-        modelo.addColumn("$ Alquiler (por día)");
+        modelo.addColumn("$ Alquiler");
         modelo.addColumn("Foto");
+        
+        tablaTotalCarros.setModel(modelo);
+        
+        sql = "select carros.id, carros.placa, marca.marca, tipo.tipo, año.año, color.color, carros.$_venta, carros.$_alquiler, carros.foto from carros inner join marca on carros.fkmarca = marca.id inner join tipo on carros.fktipo = tipo.id inner join año on carros.fkaño = año.id inner join color on carros.fkcolor = color.id;";
+        
+        try {
+            Statement st = objetoConexion.estableceConexion().createStatement();
+            ResultSet rs = st.executeQuery(sql);
+            
+            while (rs.next()){
+                String id = rs.getString("id");
+                String placa = rs.getString("placa");
+                String marca = rs.getString("marca");
+                String tipo = rs.getString("tipo");
+                String año = rs.getString("año");
+                String color = rs.getString("color");
+                String $_venta = rs.getString("$_venta");
+                String $_alquiler = rs.getString("$_alquiler");
+                
+                byte [] imageBytes = rs.getBytes("foto");
+                Image foto = null;
+                
+                if (imageBytes != null){
+                    try {
+                        ImageIcon imageIcon = new ImageIcon(imageBytes);
+                        foto = imageIcon.getImage();
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(null, "Error"+e.toString());
+                    }
+                    
+                    modelo.addRow(new Object[]{id, placa, marca, tipo, año, color, $_venta, $_alquiler, foto} );
+                }
+                
+                tablaTotalCarros.setModel(modelo);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error al mostrar usuarios: "+e.toString());
+        }
+        finally {
+            objetoConexion.cerrarConexion();
+        }
+    }
+    
+    public void seleccionar (JTable totalCarros, JTextField placa, JComboBox marca, JComboBox tipo, JComboBox año, JComboBox color, JTextField $_venta, JTextField $_alquiler, JLabel foto){
+        
+        int fila = totalCarros.getSelectedRow();
+        if (fila >= 0){
+            placa.setText(totalCarros.getValueAt(fila, 1).toString());
+            
+            marca.setSelectedItem(totalCarros.getValueAt(fila, 2).toString());
+            tipo.setSelectedItem(totalCarros.getValueAt(fila, 3).toString());
+            año.setSelectedItem(totalCarros.getValueAt(fila, 4).toString());
+            color.setSelectedItem(totalCarros.getValueAt(fila, 5).toString());
+            
+            $_venta.setText(totalCarros.getValueAt(fila, 6).toString());
+            $_alquiler.setText(totalCarros.getValueAt(fila, 7).toString());
+            
+            Image imagen = (Image) totalCarros.getValueAt(fila, 8);
+            ImageIcon originalIcon = new ImageIcon(imagen);
+            int lblAnchura = foto.getWidth();
+            int lblAltura = foto.getHeight();
+            Image scaledImage = originalIcon.getImage().getScaledInstance(lblAnchura, lblAltura, Image.SCALE_SMOOTH);
+            
+            foto.setIcon(new ImageIcon(scaledImage));
+        }
+    }
+    
+    public void modificar (JTextField placa, JComboBox marca, JComboBox tipo, JComboBox año, JComboBox color, JTextField pVenta, JTextField pAlquiler, File foto){
+        
+        CConexion objetoConexion = new CConexion();
+        
+        String consulta = "update carros set carros.placa=?, carros.fkmarca=?, carros.fktipo=?, carros.fkaño=?, carros.fkcolor=?, carros.$_venta=?, carros.$_alquiler=?, carros.foto=? where carros.placa=?;";
+        
+        try {
+            FileInputStream fis = new FileInputStream(foto);
+            CallableStatement cs = objetoConexion.estableceConexion().prepareCall(consulta);
+            
+            cs.setString(1, placa.getText());
+            
+            int idMarca = (int) marca.getClientProperty(marca.getSelectedItem());
+            cs.setInt(2, idMarca);
+            int idTipo = (int) tipo.getClientProperty(tipo.getSelectedItem());
+            cs.setInt(3, idTipo);
+            int idAño = (int) año.getClientProperty(año.getSelectedItem());
+            cs.setInt(4, idAño);
+            int idColor = (int) color.getClientProperty(color.getSelectedItem());
+            cs.setInt(5, idColor);
+            
+            cs.setInt(6, Integer.parseInt(pVenta.getText()));
+            cs.setInt(7, Integer.parseInt(pAlquiler.getText()));
+            
+            cs.setBinaryStream(8, fis, (int)foto.length());
+            
+            cs.setString(9, placa.getText());
+            
+            cs.execute();
+            
+            JOptionPane.showMessageDialog(null, "Se modificó correctamente.");
+            
+                    
+        } catch (Exception e) {
+            JOptionPane.showConfirmDialog(null, "Error al modificarr: "+e.toString());
+        }
+        finally {
+            objetoConexion.cerrarConexion();
+        }
+    }
+    
+    public void eliminar(JTextField placa){
+        CConexion objetoConexion = new CConexion();
+        
+        String consulta = "delete from carros where carros.placa=?;";
+        
+        try {
+            CallableStatement cs = objetoConexion.estableceConexion().prepareCall(consulta);
+            
+            cs.setString(1, placa.getText());
+            
+            cs.execute();
+            
+            JOptionPane.showMessageDialog(null, "Se elimino el registro correctamente.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "No se elimino el registro. Error: "+e.toString());
+        }
+        finally{
+            objetoConexion.cerrarConexion();
+        }
     }
 }

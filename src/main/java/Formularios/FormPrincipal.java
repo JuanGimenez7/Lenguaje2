@@ -26,6 +26,7 @@ public class FormPrincipal extends javax.swing.JFrame {
         CCarro objetoCarro4 = new CCarro();
         objetoCarro4.mostrarColorCombo(cbColor);
         txtRutaImagen.setEditable(false);
+        objetoCarro1.mostrarCarros(tbCarros);
     }
 
     @SuppressWarnings("unchecked")
@@ -57,7 +58,7 @@ public class FormPrincipal extends javax.swing.JFrame {
         cbColor = new javax.swing.JComboBox<>();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        tbUsuarios = new javax.swing.JTable();
+        tbCarros = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Registro de carros");
@@ -115,8 +116,18 @@ public class FormPrincipal extends javax.swing.JFrame {
         });
 
         btnModificar.setText("Modificar");
+        btnModificar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnModificarActionPerformed(evt);
+            }
+        });
 
         btnEliminar.setText("Eliminar");
+        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEliminarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -250,7 +261,7 @@ public class FormPrincipal extends javax.swing.JFrame {
 
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Lista de carros"));
 
-        tbUsuarios.setModel(new javax.swing.table.DefaultTableModel(
+        tbCarros.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {},
                 {},
@@ -261,7 +272,12 @@ public class FormPrincipal extends javax.swing.JFrame {
 
             }
         ));
-        jScrollPane1.setViewportView(tbUsuarios);
+        tbCarros.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tbCarrosMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(tbCarros);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -343,11 +359,29 @@ public class FormPrincipal extends javax.swing.JFrame {
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         CCarro objetoCarro = new CCarro();
         objetoCarro.agregarCarro(txtPlaca, cbMarca, cbTipo, cbAño, cbColor, txtVenta, txtAlquiler, archivoSeleccionado);
+        objetoCarro.mostrarCarros(tbCarros);
     }//GEN-LAST:event_btnGuardarActionPerformed
 
     private void cbTipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbTipoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_cbTipoActionPerformed
+
+    private void tbCarrosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbCarrosMouseClicked
+        CCarro objetoCarro = new CCarro();
+        objetoCarro.seleccionar(tbCarros, txtPlaca, cbMarca, cbTipo, cbAño, cbColor, txtVenta, txtAlquiler, lblImagen);
+    }//GEN-LAST:event_tbCarrosMouseClicked
+
+    private void btnModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarActionPerformed
+        CCarro objetoCarro = new CCarro();
+        objetoCarro.modificar(txtPlaca, cbMarca, cbTipo, cbAño, cbColor, txtVenta, txtAlquiler, archivoSeleccionado);
+        objetoCarro.mostrarCarros(tbCarros);
+    }//GEN-LAST:event_btnModificarActionPerformed
+
+    private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
+        CCarro objetoCarro = new CCarro();
+        objetoCarro.eliminar(txtPlaca);
+        objetoCarro.mostrarCarros(tbCarros);
+    }//GEN-LAST:event_btnEliminarActionPerformed
 
     public static void main(String args[]) {
         try {
@@ -399,7 +433,7 @@ public class FormPrincipal extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblImagen;
-    private javax.swing.JTable tbUsuarios;
+    private javax.swing.JTable tbCarros;
     private javax.swing.JTextField txtAlquiler;
     private javax.swing.JTextField txtPlaca;
     private javax.swing.JTextField txtRutaImagen;
